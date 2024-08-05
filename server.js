@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import express from 'express';
 
 const port = process.env.PORT || 5000;

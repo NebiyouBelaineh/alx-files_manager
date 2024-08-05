@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 

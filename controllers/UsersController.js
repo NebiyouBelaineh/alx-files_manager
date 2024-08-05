@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { MongoClient } from 'mongodb';
 
 class DBClient {
