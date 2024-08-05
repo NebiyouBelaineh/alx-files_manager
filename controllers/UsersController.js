@@ -3,7 +3,7 @@
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
 
-class UserController {
+class UsersController {
   static async postNew(req, res) {
     if (dbClient.isAlive()) {
       const { email, password } = req.body;
@@ -22,4 +22,4 @@ class UserController {
     return null;
   }
 }
-module.exports = UserController;
+module.exports = UsersController;
