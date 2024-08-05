@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
+import { Router } from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 
-const indexRoutes = (app) => {
-  app.get('/status', AppController.getStatus);
-  app.get('/stats', AppController.getStats);
-  app.post('/users', UsersController.postNew);
-};
+const router = Router();
 
-export default indexRoutes;
+router.use('/status', AppController.getStatus);
+router.use('/stats', AppController.getStats);
+router.use('/users', UsersController.postNew);
+
+module.exports = router;
