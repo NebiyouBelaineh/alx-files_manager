@@ -7,8 +7,8 @@ class AppController {
   static getStatus(req, res) {
     if (redisClient.isAlive() && dbClient.isAlive()) {
       const status = {
-        redis: true,
-        db: true,
+        redis: redisClient.isAlive(),
+        db: dbClient.isAlive(),
       };
       res.status(200).json(status);
     }
