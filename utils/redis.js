@@ -31,5 +31,5 @@ class RedisClient {
     return this.client.delAsync(key);
   }
 }
-
-module.exports = new RedisClient();
+const redisClient = new RedisClient();
+module.exports = redisClient;
