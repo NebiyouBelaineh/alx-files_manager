@@ -9,34 +9,36 @@ class DBClient {
     this.database = process.env.DB_DATABASE || 'files_manager';
     this.url = `mongodb://${this.host}:${this.port}`;
     this.client = new MongoClient(this.url, { useUnifiedTopology: true });
+    this.isConnected = false;
+
     this.db = null;
+    this.userCollection = null;
+    this.filesCollection = null;
+
+    this.makeConnection();
   }
 
   async makeConnection() {
     try {
       await this.client.connect();
+      this.isConnected = true;
+
       this.db = this.client.db(this.database);
-      return true;
+      this.fileCollection = this.db.collection('files');
+      this.userCollection = this.db.collection('users');
     } catch (error) {
       console.log(error.message);
-
-      return false;
+      this.isConnected = false;
     }
   }
 
   isAlive() {
-    if (!this.db) {
-      this.makeConnection();
-      return false;
-    }
-    return true;
+    return this.isConnected;
   }
 
   async nbUsers() {
     try {
-      const collection = await this.db.collection('users');
-      const users = await collection.countDocuments();
-
+      const users = await this.userCollection.countDocuments();
       return users;
     } catch (error) {
       console.log(error.message);
@@ -46,9 +48,7 @@ class DBClient {
 
   async nbFiles() {
     try {
-      const collection = await this.db.collection('files');
-      const files = await collection.countDocuments();
-
+      const files = await this.fileCollection.countDocuments();
       return files;
     } catch (error) {
       console.log(error.message);
