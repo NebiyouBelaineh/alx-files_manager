@@ -6,8 +6,8 @@ import UsersController from '../controllers/UsersController';
 
 const router = Router();
 
-router.use('/status', AppController.getStatus);
-router.use('/stats', AppController.getStats);
-router.use('/users', UsersController.postNew);
+router.get('/status', AppController.getStatus);
+router.get('/stats', AppController.getStats);
+router.post('/users', UsersController.postNew);
 
-export default router;
+module.exports = router;
