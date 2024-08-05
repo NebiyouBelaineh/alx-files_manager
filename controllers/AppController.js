@@ -21,7 +21,7 @@ class AppController {
       const stats = {
         users,
         files,
-      }
+      };
       res.status(200).json(stats);
     }
   }
