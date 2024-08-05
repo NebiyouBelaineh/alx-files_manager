@@ -10,4 +10,4 @@ router.use('/status', AppController.getStatus);
 router.use('/stats', AppController.getStats);
 router.use('/users', UsersController.postNew);
 
-module.exports = router;
+export default router;

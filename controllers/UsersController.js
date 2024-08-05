@@ -22,4 +22,5 @@ class UsersController {
     return null;
   }
 }
-module.exports = UsersController;
+
+export default UsersController;
