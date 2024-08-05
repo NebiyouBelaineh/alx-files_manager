@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import AppController from '../controllers/AppController';
-import UserController from '../controllers/UserController';
+import UserController from '../controllers/UsersController';
 
 const indexRoutes = (app) => {
   app.get('/status', AppController.getStatus);
