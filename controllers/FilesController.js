@@ -88,7 +88,7 @@ class FileController {
       parentId: fileInfo.parentId || 0,
       isPublic: fileInfo.isPublic || false,
     };
-    return res.status(200).json(result);
+    return res.status(201).json(result);
   }
 }
 export default FileController;
