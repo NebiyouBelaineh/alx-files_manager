@@ -5,7 +5,7 @@ class UsersController {
   static async postNew(req, res) {
     if (dbClient.isAlive()) {
       const { email, password } = req.body;
-      if (!email) { return res.status(400).json({ error: 'Missing email ' }); }
+      if (!email) { return res.status(400).json({ error: 'Missing email' }); }
       if (!password) { return res.status(400).json({ error: 'Missing password' }); }
 
       const userCollection = await dbClient.userCollection;
@@ -15,7 +15,7 @@ class UsersController {
       const passwordHash = sha1(password);
 
       const newUser = await userCollection.insertOne({ email, passwordHash });
-      return res.status(201).json({ email, id: newUser.insertedId });
+      return res.status(201).json({ _id: newUser.insertedId, email });
     }
     return null;
   }
