@@ -4,6 +4,7 @@ import dbClient from '../utils/db';
 class UsersController {
   static async postNew(req, res) {
     const { email, password } = req.body;
+    console.log(email, password);
     if (!email) { return res.status(400).json({ error: 'Missing email' }); }
     if (!password) { return res.status(400).json({ error: 'Missing password' }); }
 
@@ -13,8 +14,8 @@ class UsersController {
 
     const passwordHash = sha1(password);
 
-    const newUser = await userCollection.insertOne({ email, passwordHash });
-    return res.status(201).json({ _id: newUser.insertedId, email });
+    const newUser = await userCollection.insertOne({ email, password: passwordHash });
+    return res.status(201).json({ id: newUser.insertedId, email });
   }
 }
 
