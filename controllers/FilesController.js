@@ -23,7 +23,11 @@ class FileController {
 
     // Check parent id for file
     if (fileInfo.parentId) {
-      const parentFile = await dbClient.fileCollection.findOne({ _id: ObjectId(fileInfo.parentId) });
+      const parentFile = await dbClient.fileCollection.findOne(
+        {
+          _id: ObjectId(fileInfo.parentId),
+        },
+      );
       // console.log(parentFile, fileInfo.parentId);
       if (!parentFile) { return res.status(400).json({ error: 'Parent not found' }); }
       if (parentFile.type !== 'folder') { return res.status(400).json({ error: 'Parent is not a folder' }); }
