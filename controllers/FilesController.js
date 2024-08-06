@@ -37,7 +37,7 @@ class FileController {
         isPublic: fileInfo.isPublic || false,
         userId,
       });
-      console.log(newFolder.ops[0]);
+      // console.log(newFolder.ops[0]);
       const result = {
         id: newFolder.insertedId,
         name: fileInfo.name,
