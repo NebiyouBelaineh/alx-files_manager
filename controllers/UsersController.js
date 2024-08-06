@@ -9,7 +9,7 @@ class UsersController {
 
     const userCollection = await dbClient.userCollection;
     const emailAdd = await userCollection.findOne({ email });
-    if (emailAdd) { return res.status(400).json({ error: 'Already exists' }); }
+    if (emailAdd) { return res.status(400).json({ error: 'Already exist' }); }
 
     const passwordHash = sha1(password);
 
