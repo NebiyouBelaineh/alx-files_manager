@@ -1,9 +1,8 @@
 import fs from 'fs';
-import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import { uuidV4 } from 'mongodb/lib/core/utils';
 
 class FileController {
   static async postUpload(req, res) {
@@ -24,7 +23,8 @@ class FileController {
 
     // Check parent id for file
     if (fileInfo.parentId) {
-      const parentFile = await dbClient.fileCollection.findOne({ parentId: fileInfo.parentId });
+      const parentFile = await dbClient.fileCollection.findOne({ _id: ObjectId(fileInfo.parentId) });
+      // console.log(parentFile, fileInfo.parentId);
       if (!parentFile) { return res.status(400).json({ error: 'Parent not found' }); }
       if (parentFile.type !== 'folder') { return res.status(400).json({ error: 'Parent is not a folder' }); }
     }
@@ -37,36 +37,53 @@ class FileController {
         isPublic: fileInfo.isPublic || false,
         userId,
       });
-      const result = newFolder.ops[0];
-      console.log(result);
+      console.log(newFolder.ops[0]);
+      const result = {
+        id: newFolder.insertedId,
+        name: fileInfo.name,
+        type: fileInfo.type,
+        parentId: fileInfo.parentId || '0',
+        isPublic: fileInfo.isPublic || false,
+        userId,
+      };
+      // console.log(result);
       return res.status(201).json(result);
     }
     // file type image or file
 
     const dirPath = process.env.FOLDER_PATH || '/tmp/files_manager';
     if (!fs.existsSync(dirPath)) { fs.mkdirSync(dirPath); }
-    const fileName = `${uuidV4()}`;
-    const filePath = path.join(dirPath, fileName);
+    const fileName = `${uuidv4()}`;
+    // const filePath = path.join(dirPath, fileName);
+    // console.log(fileName);
+    const filePath = `${dirPath}/${fileName}`;
 
     try {
       const fileData = Buffer.from(fileInfo.data, 'base64');
       fs.writeFileSync(filePath, fileData);
     } catch (error) {
-      console.log(error.message);
+      throw Error(error.message);
     }
-    const newFile = {
+    const newFile = await dbClient.fileCollection.insertOne({
+      userId,
       name: fileInfo.name,
       type: fileInfo.type,
-      path: filePath,
       parentId: fileInfo.parentId || '0',
       isPublic: fileInfo.isPublic || false,
-      userId,
       localPath: filePath,
-    };
+    });
+    // const newFile = ;
 
-    const result = (await dbClient.fileCollection.insertOne(newFile)).ops[0];
-    console.log(result);
+    // console.log(result.ops[0]);
     // Temporary success message below
+    const result = {
+      id: newFile.insertedId,
+      userId,
+      name: fileInfo.name,
+      type: fileInfo.type,
+      parentId: fileInfo.parentId || '0',
+      isPublic: fileInfo.isPublic || false,
+    };
     return res.status(200).json(result);
   }
 }
