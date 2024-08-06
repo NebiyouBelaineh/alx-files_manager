@@ -2,8 +2,9 @@ import { Router } from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
+import FileController from '../controllers/FilesController';
 import authMid from '../utils/authMid';
-import authToken from './authToken';
+import authToken from '../utils/authToken';
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.post('/users', UsersController.postNew);
 router.get('/connect', authMid, AuthController.getConnect);
 router.get('/disconnect', authToken, AuthController.getDisconnect);
 router.get('/users/me', authToken, AuthController.getMe);
+router.post('/files', authToken, FileController.postUpload);
 
 module.exports = router;
