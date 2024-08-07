@@ -106,6 +106,7 @@ class FileController {
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
       { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
+      // { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -130,11 +131,16 @@ class FileController {
 
     const { parentId, page } = req.query;
     const pageInt = page > -1 ? parseInt(page, 10) : 0;
+
     let query;
+
+    // Commented out for Testing purpose, alternative should be used for production
     if (!parentId) {
       query = { userId: user._id };
+      // query = { userId };
     } else {
       query = { userId: user._id, parentId: ObjectId(parentId) };
+      // query = { userId, parentId };
     }
     const itemsPerPage = 20;
 
@@ -154,6 +160,109 @@ class FileController {
       userId,
     }));
     return res.status(200).json(finalResult);
+  }
+
+  static async putPublish(req, res) {
+    const { token } = req;
+    const { id } = req.params;
+    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
+
+    // *********** Use this for production: ***********
+    let file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId: ObjectId(userId),
+      },
+    );
+
+    // *********** Use this for testing: ***********
+    // let file = await dbClient.fileCollection.findOne(
+    //   {
+    //     _id: ObjectId(id),
+    //     userId,
+    //   },
+    // );
+    // console.log(file);
+    // // *********** *********** ***********
+    if (!file) { return res.status(404).json({ error: 'Not found' }); }
+
+    await dbClient.fileCollection.updateOne(
+      { _id: ObjectId(id) },
+      { $set: { isPublic: true } },
+    );
+
+    // Get updated value: note: this maybe expensive operation
+    file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId,
+      },
+    );
+
+    const result = {
+      id: file._id,
+      name: file.name,
+      type: file.type,
+      parentId: file.parentId,
+      isPublic: file.isPublic,
+      userId,
+    };
+    return res.status(200).json(result);
+  }
+
+  static async putUnpublish(req, res) {
+    console.log('In putUnpublish');
+    const { token } = req;
+    const { id } = req.params;
+    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
+
+    // *********** Use this for production: ***********
+    let file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId: ObjectId(userId),
+      },
+    );
+
+    // *********** Use this for testing: ***********
+    // let file = await dbClient.fileCollection.findOne(
+    //   {
+    //     _id: ObjectId(id),
+    //     userId,
+    //   },
+    // );
+    // console.log(file);
+    // *********** *********** ***********
+    if (!file) { return res.status(404).json({ error: 'Not found' }); }
+
+    await dbClient.fileCollection.updateOne(
+      { _id: ObjectId(id) },
+      { $set: { isPublic: false } },
+    );
+
+    // Get updated value: note: this maybe expensive operation
+    file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId,
+      },
+    );
+
+    const result = {
+      id: file._id,
+      name: file.name,
+      type: file.type,
+      parentId: file.parentId,
+      isPublic: file.isPublic,
+      userId,
+    };
+    return res.status(200).json(result);
   }
 }
 export default FileController;
