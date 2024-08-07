@@ -17,5 +17,7 @@ router.get('/users/me', authToken, AuthController.getMe);
 router.post('/files', authToken, FileController.postUpload);
 router.get('/files', authToken, FileController.getIndex);
 router.get('/files/:id', authToken, FileController.getShow);
+router.put('/files/:id/publish', authToken, FileController.putPublish);
+router.put('/files/:id/unpublish', authToken, FileController.putUnpublish);
 
-module.exports = router;
+export default router;
