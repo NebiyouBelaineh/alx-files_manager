@@ -294,13 +294,19 @@ class FileController {
     }
 
     try {
+      let filePath = '';
+      if (file.type === 'image' && req.query.size) {
+        filePath = `${file.localPath}_${req.query.size}`;
+      } else {
+        filePath = file.localPath;
+      }
       const mimeType = contentType(lookup(file.name));
       res.setHeader('Content-Type', mimeType);
       if (mimeType.startsWith('text/') || mimeType === 'application/json') {
-        const data = fs.readFileSync(file.localPath, 'utf-8');
+        const data = fs.readFileSync(filePath, 'utf-8');
         return res.status(200).send(data);
       }
-      const data = fs.readFileSync(file.localPath);
+      const data = fs.readFileSync(filePath);
       return res.status(200).send(data);
     } catch (error) {
       return res.status(500).json({ error: 'Internal Server Error' });
