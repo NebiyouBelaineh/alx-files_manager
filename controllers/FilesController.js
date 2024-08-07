@@ -275,13 +275,14 @@ class FileController {
 
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
+    const user = await dbClient.userCollection.findOne({ _id: ObjectId(userId) });
     // if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     const file = await dbClient.fileCollection.findOne({ _id: ObjectId(id) });
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     // console.log(`typeof file.userId: ${typeof file.userId.toString()},\
     // typeof userId: ${typeof userId}`);
-    if (!file.isPublic && (!userId || file.userId.toString() !== userId)) {
+    if (!file.isPublic && (!user || file.userId.toString() !== user._id.toString())) {
       return res.status(404).json({ error: 'Not found' });
     }
     if (file.type === 'folder') {
