@@ -279,7 +279,8 @@ class FileController {
 
     const file = await dbClient.fileCollection.findOne({ _id: ObjectId(id) });
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
-    // console.log(`typeof file.userId: ${typeof file.userId.toString()}, typeof userId: ${typeof userId}`);
+    // console.log(`typeof file.userId: ${typeof file.userId.toString()},\
+    // typeof userId: ${typeof userId}`);
     if (!file.isPublic && (!token || file.userId.toString() !== userId)) {
       return res.status(404).json({ error: 'Not found' });
     }
