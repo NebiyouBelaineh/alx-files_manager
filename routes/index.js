@@ -20,4 +20,4 @@ router.get('/files/:id', authToken, FileController.getShow);
 router.put('/files/:id/publish', authToken, FileController.putPublish);
 router.put('/files/:id/unpublish', authToken, FileController.putUnpublish);
 
-export default router;
+module.exports = router;
