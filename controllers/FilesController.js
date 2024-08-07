@@ -118,36 +118,36 @@ class FileController {
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
     const user = await dbClient.userCollection.findOne({ _id: ObjectId(userId) });
-    console.log('User object: ', user);
+    if (!user) { return res.status(401).json({ error: 'Unauthorized' }); }
 
-    const { parentId = 0, page } = req.query;
-    const pageInt = parseInt(req.query.page, 10) || 0;
-    console.log('parentId: ', parentId, 'pageInt: ', pageInt);
-    let query = '';
+    const { parentId, page } = req.query;
+    const pageInt = page > -1 ? parseInt(page, 10) : 0;
+    let query;
     if (!parentId) {
-      query = { userId: user._id };
+      query = { userId: user._id.toString() };
     } else {
-      query = { userId: user._id, parentId};
+      query = { userId: user._id.toString(), parentId };
     }
-    // const folder = await dbClient.fileCollection.findOne({  });
-    // console.log('folder: ', folder);
-    // if (!folder) { return res.status(200).json([]); }
     const itemsPerPage = 20;
-    const pipeline = [
-      { $match: query },
-      { $sort: { _id: -1 } },
-      {
-        $facet: {
-          metadata: [{ $count: 'total' }, { $addFields: { page: pageInt } }],
-          data: [{ $skip: pageInt * itemsPerPage }, { $limit: itemsPerPage }],
-        },
-      },
-    ];
 
-    const result = await dbClient.fileCollection.aggregate(pipeline).toArray();
-    console.log('result: ', result);
-
-    return res.status(200).json({ message: 'Success' });
+    const result = await dbClient.fileCollection.aggregate(
+      [
+        { $match: query },
+        { $skip: pageInt * itemsPerPage },
+        { $limit: itemsPerPage },    
+      ]
+    ).toArray();
+    const finalResult = result.map((file) => {
+      return {
+        id: file._id,
+        name: file.name,
+        type: file.type,
+        parentId: file.parentId,
+        isPublic: file.isPublic,
+        userId,
+      }
+    })
+    return res.status(200).json(finalResult);
   }
 }
 export default FileController;
