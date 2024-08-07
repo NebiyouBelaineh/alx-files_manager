@@ -284,9 +284,13 @@ class FileController {
     if (!file.isPublic && (!userId || file.userId.toString() !== userId)) {
       return res.status(404).json({ error: 'Not found' });
     }
-    if (file.type === 'folder') { return res.status(400).json({ error: 'A folder doesn\'t have content' }); }
+    if (file.type === 'folder') {
+      return res.status(400).json({ error: 'A folder doesn\'t have content' });
+    }
 
-    if (!fs.existsSync(file.localPath)) { return res.status(404).json({ error: 'Not found' }); }
+    if (!fs.existsSync(file.localPath)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
 
     try {
       const mimeType = contentType(lookup(file.name));
