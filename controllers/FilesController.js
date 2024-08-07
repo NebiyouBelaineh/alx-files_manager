@@ -45,9 +45,9 @@ class FileController {
       const newFolder = await dbClient.fileCollection.insertOne({
         name: fileInfo.name,
         type: fileInfo.type,
-        parentId: fileInfo.parentId || 0,
+        parentId: fileInfo.parentId ? ObjectId(fileInfo.parentId) : 0,
         isPublic: fileInfo.isPublic || false,
-        userId,
+        userId: ObjectId(userId),
       });
       // console.log(newFolder.ops[0]);
       const result = {
@@ -77,10 +77,10 @@ class FileController {
       throw Error(error.message);
     }
     const newFile = await dbClient.fileCollection.insertOne({
-      userId,
+      userId: ObjectId(userId),
       name: fileInfo.name,
       type: fileInfo.type,
-      parentId: fileInfo.parentId || 0,
+      parentId: fileInfo.parentId ? ObjectId(fileInfo.parentId) : 0,
       isPublic: fileInfo.isPublic || false,
       localPath: filePath,
     });
@@ -108,9 +108,9 @@ class FileController {
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
       // Use this for prodcution
-      // { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
+      { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
       // Use this for testing
-      { _id: ObjectId(req.params.id), userId },
+      // { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -130,6 +130,7 @@ class FileController {
     if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
+    // console.log(userId);
     const user = await dbClient.userCollection.findOne({ _id: ObjectId(userId) });
     if (!user) { return res.status(401).json({ error: 'Unauthorized' }); }
 
@@ -140,10 +141,10 @@ class FileController {
 
     // Commented out for testing purpose, alternative should be used for production
     if (!parentId) {
-      query = { userId };
+      query = { userId: ObjectId(userId) };
     } else {
-      // query = { userId: user._id, parentId: ObjectId(parentId) };
-      query = { userId, parentId };
+      query = { userId: ObjectId(userId), parentId: ObjectId(parentId) };
+      // query = { userId, parentId };
     }
     const itemsPerPage = 20;
 
@@ -174,21 +175,21 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     // *********** Use this for production: ***********
-    // let file = await dbClient.fileCollection.findOne(
-    //   {
-    //     _id: ObjectId(id),
-    //     userId: ObjectId(userId),
-    //   },
-    // );
-
-    // *********** Use this for testing: ***********
     let file = await dbClient.fileCollection.findOne(
       {
         _id: ObjectId(id),
-        userId,
+        userId: ObjectId(userId),
       },
     );
-    console.log(file);
+
+    // *********** Use this for testing: ***********
+    /*   let file = await dbClient.fileCollection.findOne(
+        {
+          _id: ObjectId(id),
+          userId,
+        },
+      );
+      console.log(file); */
     // // *********** *********** ***********
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
 
@@ -201,7 +202,7 @@ class FileController {
     file = await dbClient.fileCollection.findOne(
       {
         _id: ObjectId(id),
-        userId,
+        userId: ObjectId(userId),
       },
     );
 
@@ -225,21 +226,21 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
 
     // *********** Use this for production: ***********
-    // let file = await dbClient.fileCollection.findOne(
-    //   {
-    //     _id: ObjectId(id),
-    //     userId: ObjectId(userId),
-    //   },
-    // );
-
-    // *********** Use this for testing: ***********
     let file = await dbClient.fileCollection.findOne(
       {
         _id: ObjectId(id),
-        userId,
+        userId: ObjectId(userId),
       },
     );
-    console.log(file);
+
+    // *********** Use this for testing: ***********
+    // let file = await dbClient.fileCollection.findOne(
+    //   {
+    //     _id: ObjectId(id),
+    //     userId,
+    //   },
+    // );
+    // console.log(file);
     // *********** *********** ***********
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
 
@@ -252,7 +253,7 @@ class FileController {
     file = await dbClient.fileCollection.findOne(
       {
         _id: ObjectId(id),
-        userId,
+        userId: ObjectId(userId),
       },
     );
 
