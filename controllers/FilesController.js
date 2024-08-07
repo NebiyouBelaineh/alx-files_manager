@@ -302,7 +302,7 @@ class FileController {
       const data = fs.readFileSync(file.localPath);
       return res.status(200).send(data);
     } catch (error) {
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
