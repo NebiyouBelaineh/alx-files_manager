@@ -105,7 +105,7 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
-      { _id: ObjectId(req.params.id), userId }
+      { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -142,19 +142,17 @@ class FileController {
       [
         { $match: query },
         { $skip: pageInt * itemsPerPage },
-        { $limit: itemsPerPage },    
-      ]
+        { $limit: itemsPerPage },
+      ],
     ).toArray();
-    const finalResult = result.map((file) => {
-      return {
-        id: file._id,
-        name: file.name,
-        type: file.type,
-        parentId: file.parentId,
-        isPublic: file.isPublic,
-        userId,
-      }
-    })
+    const finalResult = result.map((file) => ({
+      id: file._id,
+      name: file.name,
+      type: file.type,
+      parentId: file.parentId,
+      isPublic: file.isPublic,
+      userId,
+    }));
     return res.status(200).json(finalResult);
   }
 }
