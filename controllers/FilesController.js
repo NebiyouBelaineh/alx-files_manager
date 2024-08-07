@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import path from 'path';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -105,8 +106,8 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
-      { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
-      // { _id: ObjectId(req.params.id), userId },
+      // { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
+      { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -134,10 +135,9 @@ class FileController {
 
     let query;
 
-    // Commented out for Testing purpose, alternative should be used for production
+    // Commented out for testing purpose, alternative should be used for production
     if (!parentId) {
-      query = { userId: user._id };
-      // query = { userId };
+      query = { userId };
     } else {
       query = { userId: user._id, parentId: ObjectId(parentId) };
       // query = { userId, parentId };
@@ -214,7 +214,6 @@ class FileController {
   }
 
   static async putUnpublish(req, res) {
-    console.log('In putUnpublish');
     const { token } = req;
     const { id } = req.params;
     if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
@@ -263,6 +262,50 @@ class FileController {
       userId,
     };
     return res.status(200).json(result);
+  }
+
+  static async getFile(req, res) {
+    const { id } = req.params;
+    const { token } = req;
+    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
+
+    const file = await dbClient.fileCollection.findOne({ _id: ObjectId(id) });
+    if (!file) { return res.status(404).json({ error: 'Not found' }); }
+    if (!file.isPublic && file.userId !== userId) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if (file.type === 'folder') { return res.status(400).json({ error: 'A folder doesn\'t have content' }); }
+
+    if (!file.localPath) { return res.status(404).json({ error: 'Not found' }); }
+    const mimeTypes = {
+      image: {
+        jpg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+      },
+      file: {
+        txt: 'text/plain',
+      },
+    };
+    const fileExtension = path.extname(file.name).slice(1);
+    console.log('fileExtension', fileExtension);
+    let mimeType = 'application/octet-stream';
+
+    if (file.type === 'image') {
+      mimeType = mimeTypes.image[fileExtension] || 'application/octet-stream';
+    } else if (file.type === 'file') {
+      mimeType = mimeTypes.file[fileExtension] || 'application/octet-stream';
+    }
+    res.setHeader('Content-Type', mimeType);
+    const data = fs.readFileSync(file.localPath);
+
+    const dataStr = data.toString('utf-8');
+
+    return res.status(200).send(dataStr);
   }
 }
 export default FileController;

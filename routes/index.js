@@ -19,5 +19,6 @@ router.get('/files', authToken, FileController.getIndex);
 router.get('/files/:id', authToken, FileController.getShow);
 router.put('/files/:id/publish', authToken, FileController.putPublish);
 router.put('/files/:id/unpublish', authToken, FileController.putUnpublish);
+router.get('/files/:id/data', authToken, FileController.getFile);
 
 module.exports = router;
