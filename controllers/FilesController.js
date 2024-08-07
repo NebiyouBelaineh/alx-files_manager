@@ -105,7 +105,7 @@ class FileController {
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
     // console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne(
-      { _id: ObjectId(req.params.id), userId: ObjectId(userId) },
+      { _id: ObjectId(req.params.id), userId },
     );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
@@ -132,12 +132,14 @@ class FileController {
     const pageInt = page > -1 ? parseInt(page, 10) : 0;
     let query;
     if (!parentId) {
-      query = { userId: user._id };
+      query = { userId };
     } else {
-      query = { userId: user._id, parentId: ObjectId(parentId) };
+      query = { userId, parentId };
     }
     const itemsPerPage = 20;
 
+    // const filtered = await dbClient.fileCollection.find(query).toArray();
+    // console.log(filtered);
     const result = await dbClient.fileCollection.aggregate(
       [
         { $match: query },
