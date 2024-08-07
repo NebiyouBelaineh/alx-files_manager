@@ -90,5 +90,64 @@ class FileController {
     };
     return res.status(201).json(result);
   }
+
+  static async getShow(req, res) {
+    const { token } = req;
+    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
+    // console.log(req.params.id);
+    const file = await dbClient.fileCollection.findOne({ _id: ObjectId(req.params.id), userId });
+    if (!file) { return res.status(404).json({ error: 'Not found' }); }
+    const result = {
+      id: file._id,
+      name: file.name,
+      type: file.type,
+      parentId: file.parentId,
+      isPublic: file.isPublic,
+      userId,
+    };
+    return res.status(200).json(result);
+    // return res.status(200).json({ message: 'Success' });
+  }
+
+  static async getIndex(req, res) {
+    const { token } = req;
+    if (!token) { return res.status(401).json({ error: 'Unauthorized' }); }
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    const user = await dbClient.userCollection.findOne({ _id: ObjectId(userId) });
+    console.log('User object: ', user);
+
+    const { parentId = 0, page } = req.query;
+    const pageInt = parseInt(req.query.page, 10) || 0;
+    console.log('parentId: ', parentId, 'pageInt: ', pageInt);
+    let query = '';
+    if (!parentId) {
+      query = { userId: user._id };
+    } else {
+      query = { userId: user._id, parentId};
+    }
+    // const folder = await dbClient.fileCollection.findOne({  });
+    // console.log('folder: ', folder);
+    // if (!folder) { return res.status(200).json([]); }
+    const itemsPerPage = 20;
+    const pipeline = [
+      { $match: query },
+      { $sort: { _id: -1 } },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }, { $addFields: { page: pageInt } }],
+          data: [{ $skip: pageInt * itemsPerPage }, { $limit: itemsPerPage }],
+        },
+      },
+    ];
+
+    const result = await dbClient.fileCollection.aggregate(pipeline).toArray();
+    console.log('result: ', result);
+
+    return res.status(200).json({ message: 'Success' });
+  }
 }
 export default FileController;
