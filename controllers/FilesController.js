@@ -281,21 +281,22 @@ class FileController {
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     // console.log(`typeof file.userId: ${typeof file.userId.toString()},\
     // typeof userId: ${typeof userId}`);
-    if (!file.isPublic && (!token || file.userId.toString() !== userId)) {
+    if (!file.isPublic && (!userId || file.userId.toString() !== userId)) {
       return res.status(404).json({ error: 'Not found' });
     }
     if (file.type === 'folder') { return res.status(400).json({ error: 'A folder doesn\'t have content' }); }
 
-    if (!file.localPath) { return res.status(404).json({ error: 'Not found' }); }
+    if (!fs.existsSync(file.localPath)) { return res.status(404).json({ error: 'Not found' }); }
 
     try {
       const mimeType = contentType(lookup(file.name));
       res.setHeader('Content-Type', mimeType);
+      if (mimeType.startsWith('text/') || mimeType === 'application/json') {
+        const data = fs.readFileSync(file.localPath, 'utf-8');
+        return res.status(200).send(data);
+      }
       const data = fs.readFileSync(file.localPath);
-
-      const dataStr = data.toString('utf-8');
-
-      return res.status(200).send(dataStr);
+      return res.status(200).send(data);
     } catch (error) {
       return res.status(404).json({ error: 'Not found' });
     }
