@@ -132,9 +132,9 @@ class FileController {
     const pageInt = page > -1 ? parseInt(page, 10) : 0;
     let query;
     if (!parentId) {
-      query = { userId: user._id.toString() };
+      query = { userId: user._id };
     } else {
-      query = { userId: user._id.toString(), parentId };
+      query = { userId: user._id, parentId: ObjectId(parentId) };
     }
     const itemsPerPage = 20;
 
