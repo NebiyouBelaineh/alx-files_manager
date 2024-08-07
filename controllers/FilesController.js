@@ -18,8 +18,12 @@ class FileController {
 
     const allowedTypes = ['folder', 'file', 'image'];
     if (!fileInfo.name) { return res.status(400).json({ error: 'Missing name' }); }
-    if (!fileInfo.type || !allowedTypes.includes(fileInfo.type)) { return res.status(400).json({ error: 'Missing type' }); }
-    if (!fileInfo.data && fileInfo.type !== 'folder') { return res.status(400).json({ error: 'Missing data' }); }
+    if (!fileInfo.type || !allowedTypes.includes(fileInfo.type)) {
+      return res.status(400).json({ error: 'Missing type' });
+    }
+    if (!fileInfo.data && fileInfo.type !== 'folder') {
+      return res.status(400).json({ error: 'Missing data' });
+    }
 
     // Check parent id for file
     if (fileInfo.parentId) {
@@ -30,7 +34,9 @@ class FileController {
       );
       // console.log(parentFile, fileInfo.parentId);
       if (!parentFile) { return res.status(400).json({ error: 'Parent not found' }); }
-      if (parentFile.type !== 'folder') { return res.status(400).json({ error: 'Parent is not a folder' }); }
+      if (parentFile.type !== 'folder') {
+        return res.status(400).json({ error: 'Parent is not a folder' });
+      }
     }
     if (fileInfo.type === 'folder') {
       // Add file and return the new file wth 201 status code
@@ -98,7 +104,9 @@ class FileController {
     const userId = await redisClient.get(key);
     if (!userId) { return res.status(401).json({ error: 'Unauthorized' }); }
     // console.log(req.params.id);
-    const file = await dbClient.fileCollection.findOne({ _id: ObjectId(req.params.id), userId });
+    const file = await dbClient.fileCollection.findOne(
+      { _id: ObjectId(req.params.id), userId }
+    );
     if (!file) { return res.status(404).json({ error: 'Not found' }); }
     const result = {
       id: file._id,
