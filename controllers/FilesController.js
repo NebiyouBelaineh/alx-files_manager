@@ -43,7 +43,7 @@ class FileController {
       const newFolder = await dbClient.fileCollection.insertOne({
         name: fileInfo.name,
         type: fileInfo.type,
-        parentId: fileInfo.parentId || 0,
+        parentId: fileInfo.parentId || '0',
         isPublic: fileInfo.isPublic || false,
         userId,
       });
@@ -52,7 +52,7 @@ class FileController {
         id: newFolder.insertedId,
         name: fileInfo.name,
         type: fileInfo.type,
-        parentId: fileInfo.parentId || 0,
+        parentId: fileInfo.parentId || '0',
         isPublic: fileInfo.isPublic || false,
         userId,
       };
@@ -78,7 +78,7 @@ class FileController {
       userId,
       name: fileInfo.name,
       type: fileInfo.type,
-      parentId: fileInfo.parentId || 0,
+      parentId: fileInfo.parentId || '0',
       isPublic: fileInfo.isPublic || false,
       localPath: filePath,
     });
@@ -91,7 +91,7 @@ class FileController {
       userId,
       name: fileInfo.name,
       type: fileInfo.type,
-      parentId: fileInfo.parentId || 0,
+      parentId: fileInfo.parentId || '0',
       isPublic: fileInfo.isPublic || false,
     };
     return res.status(201).json(result);
