@@ -145,7 +145,6 @@ class FileController {
         { $limit: itemsPerPage },
       ],
     ).toArray();
-    if (!result.length) { return res.status(200).json([]); }
     const finalResult = result.map((file) => ({
       id: file._id,
       name: file.name,
